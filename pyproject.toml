@@ -1,0 +1,29 @@
+[project]
+name = "healthcare-noshow-analytics"
+version = "1.0.0"
+description = "Healthcare appointment no-show analytics + prediction: data -> features -> model -> Streamlit dashboard with per-appointment explanations."
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "scikit-learn>=1.9",
+    "duckdb>=1.1",
+    "pyarrow>=16.0",
+    "joblib>=1.3",
+    "streamlit>=1.36",
+    "plotly>=5.22",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ingest", "app"]
