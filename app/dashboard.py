@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 import streamlit as st
 from sklearn.metrics import precision_recall_curve, roc_curve
 
@@ -23,20 +24,11 @@ from ingest.config import MODEL_PATH, SCORED_PATH  # noqa: E402
 from model import explain_appointment  # noqa: E402
 import analytics  # noqa: E402
 
-st.set_page_config(page_title="Healthcare No-Show Analytics", page_icon="🩺", layout="wide")
+from app.theme import THEME_CSS, apply_plotly_theme, plotly_chart
 
-CSS = """
-<style>
-.block-container { padding-top: 2.2rem; max-width: 1150px; }
-.hero { background: linear-gradient(120deg,#0F766E 0%,#0E7490 60%,#155E75 100%);
-        border-radius:18px; padding:24px 30px; margin-bottom:20px; color:#fff;
-        box-shadow:0 10px 30px rgba(15,118,110,0.25); }
-.hero h1 { font-size:1.6rem; font-weight:750; margin:0 0 6px 0; color:#fff; }
-.hero p { margin:0; color:#D1FAF0; }
-[data-testid="stMetricValue"] { font-size:1.5rem; }
-</style>
-"""
-st.markdown(CSS, unsafe_allow_html=True)
+st.set_page_config(page_title="Healthcare No-Show Analytics", page_icon="🩺", layout="wide")
+apply_plotly_theme(pio)
+st.markdown(THEME_CSS, unsafe_allow_html=True)
 
 
 @st.cache_resource
@@ -61,7 +53,7 @@ def rate_bar(df, col, title, order=None):
     fig = px.bar(g, x=col, y="no_show", title=title)
     fig.update_yaxes(tickformat=".0%", title="No-show rate")
     fig.update_layout(height=300, margin=dict(t=40, b=10))
-    st.plotly_chart(fig, use_container_width=True)
+    plotly_chart(fig, use_container_width=True)
 
 
 def main() -> None:
@@ -106,7 +98,7 @@ def main() -> None:
                           yaxis2=dict(title="Appointments", overlaying="y",
                                       side="right", showgrid=False),
                           legend=dict(orientation="h", y=-0.2))
-        st.plotly_chart(fig, use_container_width=True)
+        plotly_chart(fig, use_container_width=True)
 
         c1, c2 = st.columns(2)
         with c1:
@@ -115,14 +107,14 @@ def main() -> None:
                          title="No-show rate by clinic")
             fig.update_yaxes(tickformat=".0%", title="No-show rate")
             fig.update_layout(height=320, margin=dict(t=40, b=10))
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
 
             seg = analytics.prior_history_segments()
             fig = px.bar(seg, x="prior_no_shows_bucket", y="no_show_rate",
                          title="No-show rate by prior no-show history")
             fig.update_yaxes(tickformat=".0%", title="No-show rate")
             fig.update_layout(height=320, margin=dict(t=40, b=10))
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
         with c2:
             rem = analytics.reminder_effectiveness()
             order = ["0-2d", "3-7d", "8-14d", "15-29d", "30d+"]
@@ -133,7 +125,7 @@ def main() -> None:
                          color_discrete_map={"reminder": "#0F766E", "no reminder": "#DC2626"})
             fig.update_yaxes(tickformat=".0%", title="No-show rate")
             fig.update_layout(height=320, margin=dict(t=40, b=10))
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
 
             mat = analytics.weekday_leadtime_matrix()
             pivot = mat.pivot(index="day_of_week", columns="lead_band", values="no_show_rate")
@@ -141,7 +133,7 @@ def main() -> None:
             fig = px.imshow(pivot, color_continuous_scale="Teal", aspect="auto",
                             title="No-show rate: weekday × lead time", text_auto=".0%")
             fig.update_layout(height=320, margin=dict(t=40, b=10))
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
 
     # ---- drivers ----
     with tabs[1]:
@@ -182,7 +174,7 @@ def main() -> None:
                                      showlegend=False))
             fig.update_layout(title="ROC curve", xaxis_title="False positive rate",
                               yaxis_title="True positive rate", height=340)
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
         with c2:
             fig = go.Figure()
             for name, key in (("Logistic", "prob_lr"), ("Random forest", "prob_rf")):
@@ -190,7 +182,7 @@ def main() -> None:
                 fig.add_trace(go.Scatter(x=rec, y=prec, name=name, mode="lines"))
             fig.update_layout(title="Precision-recall curve", xaxis_title="Recall",
                               yaxis_title="Precision", height=340)
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
 
     # ---- risk scorer ----
     with tabs[3]:
@@ -223,7 +215,7 @@ def main() -> None:
                          color_discrete_map={"increases risk": "#DC2626", "reduces risk": "#059669"},
                          title="Top factors for this prediction")
             fig.update_layout(height=320, yaxis=dict(autorange="reversed"))
-            st.plotly_chart(fig, use_container_width=True)
+            plotly_chart(fig, use_container_width=True)
 
     # ---- where to act ----
     with tabs[4]:
@@ -238,7 +230,7 @@ def main() -> None:
                           yaxis_title="Share of no-shows caught", height=360)
         fig.update_xaxes(tickformat=".0%")
         fig.update_yaxes(tickformat=".0%")
-        st.plotly_chart(fig, use_container_width=True)
+        plotly_chart(fig, use_container_width=True)
         st.success(f"Targeting the riskiest 10% of appointments captures "
                    f"{g['top_decile_capture']:.0%} of all no-shows.")
         st.markdown("**Highest-risk appointments to prioritize**")
