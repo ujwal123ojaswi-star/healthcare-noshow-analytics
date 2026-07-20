@@ -66,10 +66,3 @@ drivers — no download needed). For the resume-grade version, drop one of these
 - **Action layer**: a gains curve and a ranked list of the highest-risk appointments to
   target with reminders.
 
-## Notes / limitations (interview talking points)
-
-- The train/test split is stratified random; a stricter setup would split by time or by
-  patient to fully rule out leakage. Prior-no-show counts are already computed
-  leakage-safe (only past appointments).
-- Class imbalance is handled with `class_weight="balanced"`; recall is prioritized over
-  raw accuracy because missing a no-show is the costly error.
